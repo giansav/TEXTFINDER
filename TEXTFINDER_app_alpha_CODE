@@ -1,0 +1,152 @@
+# TEXTFINDER - alpha version
+# 
+# built with Python 3.10
+#
+# This app allows you to search a word or a text within a PDF file 
+# or within all the PDF files stored in a certain folder.
+# This kind of search may be useful to check 
+# whether a certain file or group of files contains the kind of informations 
+# you are looking for without reading it.
+# The output is a complete list of all the occurrences of the searched text 
+# within all the selected files,
+# with indication of all the pages where you can find the text 
+# and the number of occurrences for each page.
+#
+# WARNINGS: 
+# It only works with native PDF files, because of the limitations of PyPDF2 modules.
+# It could take 2-3 minutes to give output.
+# The user interface graphic is very basic.
+# In case you browse a group of files the response widgets will adapt 
+# automatically to the window without resizing the window itself.
+# So, if the number of files is very high this could make the output hard to read.
+
+
+# import the required libraries
+from ast import Lambda
+from secrets import choice
+from tkinter import *
+from tkinter import ttk, filedialog
+from tkinter.filedialog import askopenfile, askdirectory
+import os
+import PyPDF2
+import regex
+
+
+# create an instance of tkinter frame, set title and geometry of the frame
+win = Tk()
+win.title("TEXT FINDER - Search text within PDF files")
+win.geometry("1300x780")
+win.configure(bg="light cyan")
+
+
+# set global variable for searching files
+entry = StringVar()
+choice = 0
+
+
+# function to select a single PDF file
+def open_file():
+   global filepath
+   global choice 
+   choice = 1
+   file = filedialog.askopenfile(mode='r', filetypes=[('PDF Files', '*.pdf')])
+   if file:
+      filepath = os.path.abspath(file.name)
+      Label(win, text="The file is located at : ", fg="blue", bg="light cyan", font=('Georgia 10')).place(x=15, y=600)
+      Label(win, text=str(filepath), fg="blue", bg="light cyan", font=('Georgia 10')).place(x=15, y=640)
+   
+
+# function to select a whole folder    
+def open_folder():
+   global folderpath
+   global pdffiles
+   global choice 
+   choice = 2
+   folderpath = filedialog.askdirectory()
+   Label(win, text="The folder is located at : ", fg="blue", bg="light cyan", font=('Georgia 10')).place(x=15, y=600)
+   Label(win, text=str(folderpath), fg="blue", bg="light cyan", font=('Georgia 10')).place(x=15, y=640)
+   pdffiles = len([entry for entry in os.listdir(folderpath) if os.path.isfile(os.path.join(folderpath, entry))])
+  
+
+# function to select the appropriate search function
+def start():
+    if choice==1:
+        find_in_PDF()
+    elif choice==2:
+        find_in_folder()
+    
+
+# function to find the submitted text in the selected PDF file
+def find_in_PDF():
+    item = entry.get()
+    doc = PyPDF2.PdfFileReader(filepath)
+    pages = doc.getNumPages()
+    list_pages = []
+    for i in range(pages):
+        current_page = doc.getPage(i)
+        text = current_page.extractText()
+        if regex.findall(item, text):
+            count_page = len(regex.findall(item, text))
+            list_pages.append((count_page, i+1))
+    count = len(list_pages)
+    total = sum([tup[0] for tup in list_pages])
+    answer = "The text   <"+item+">   was found "+str(total)+" times on "+str(count)+" pages.\nHere is the list of the occurrences (num_occ, page): \n\n"
+    response_widget = Text(font="Aerial 9",)
+    response_widget.insert(END, answer)
+    response_widget.insert(END, list_pages)
+    response_widget.place(x=400, y=0, height = 450, width = 880)
+    choice = 0
+    
+
+# function to find the submitted text in the selected folder
+def find_in_folder():
+    item = entry.get()
+    files = os.listdir(folderpath)
+    pos_x=400               # positional variables of the response widget
+    pos_y=0                 #
+    h=int(700/pdffiles)-20  #
+    for listitem in files:
+        file_name = folderpath+"/"+listitem
+        doc = PyPDF2.PdfFileReader(file_name)
+        pages = doc.getNumPages()
+        list_pages = []
+        for i in range(pages):
+            current_page = doc.getPage(i)
+            text = current_page.extractText()
+            if regex.findall(item, text):
+                count_page = len(regex.findall(item, text))
+                list_pages.append((count_page, i+1))
+        count = len(list_pages)
+        total = sum([tup[0] for tup in list_pages])
+        answer1 = "The book  <"+listitem+">  has "+str(pages)+" pages. \n"
+        answer2 = "The text   <"+item+">   was found "+str(total)+" times on "+str(count)+" different pages.\nHere is the list of the occurrences (num_occ, page): \n\n"
+        response_widget = Text(font="Aerial 9",)
+        response_widget.insert(END, answer1)
+        response_widget.insert(END, answer2)
+        response_widget.insert(END, list_pages)
+        response_widget.place(x=pos_x, y=pos_y, height = h, width = 880)
+        pos_y=pos_y+h+20    # allows to adapts response widgets to number of searched files
+    choice = 0
+
+
+# widgets for browsing PDF files
+label1 = Label(win, text="Click the button below to select a PDF FILE", fg="blue", bg="light cyan", font=('Georgia 13'))
+label1.place(x=15, y=0)
+button1 = ttk.Button(win, text="Browse PDF files", command=open_file).place(x=130, y=40)
+
+# widgets for browsing folders
+label2 = Label(win, text="or", fg="blue", bg="light cyan", font=('Georgia 13'))
+label2.place(x=170, y=100)
+label3 = Label(win, text="Click the button below to select a FOLDER", fg="blue", bg="light cyan", font=('Georgia 13'))
+label3.place(x=15, y=160)
+button2 = ttk.Button(win, text="Browse folders", command=open_folder).place(x=135, y=200)
+
+# widgets for submitting text to find in the selected folder
+subm2 = Label(win, text="Then insert text to find and click 'Submit'", fg="blue", bg="light cyan", font=('Georgia 13'))
+subm2.place(x=15, y=400)
+word = Entry(win, textvariable=entry, fg="red", font="Georgia 11").place(x=90, y=440)
+button_subm2 = ttk.Button(win, text="Submit", command=start).place(x=145, y=480)
+
+
+# start
+win.mainloop()
