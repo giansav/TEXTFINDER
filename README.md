@@ -13,3 +13,15 @@ WARNINGS:
   So, if the number of files is very high this could make the output hard to read.
   
   ALL COMMENTS AND SUGGESTIONS ARE WELCOME
+
+  ***
+
+  Questa app consente di cercare una parola o un testo all'interno di un file PDF o all'interno di tutti i file PDF archiviati in una determinata cartella. Questo tipo di ricerca può essere utile per verificare se un determinato file o gruppo di file contiene il tipo di informazioni che stai cercando senza leggerlo. L'output è un elenco completo di tutte le occorrenze del testo cercato all'interno di tutti i file selezionati, con l'indicazione di tutte le pagine in cui è possibile trovare il testo e il numero di occorrenze per ogni pagina.
+
+AVVERTENZE:
+- Funziona solo con file PDF nativi, a causa delle limitazioni dei moduli PyPDF2.
+- Potrebbero essere necessari 2-3 minuti per fornire l'output.
+- La grafica dell'interfaccia utente è molto elementare.
+- Nel caso in cui si sfogli un gruppo di file, i widget di risposta si adatteranno automaticamente alla finestra senza ridimensionare la finestra stessa. Quindi, se il numero di file è molto elevato, questo potrebbe rendere l'output difficile da leggere.
+
+TUTTI I COMMENTI E I SUGGERIMENTI SONO BENVENUTI
